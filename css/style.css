@@ -180,6 +180,18 @@ img {
     color: var(--primary);
 }
 
+/* Updated Buttons for Light Mode */
+.btn-outline {
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+}
+
+.btn-outline:hover {
+    background: var(--primary);
+    color: white;
+}
+
 /* Hamburger - Make sure it's visible */
 .hamburger {
     display: none;
