@@ -129,11 +129,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('scroll', () => {
         if (window.scrollY > 50) {
-            header.style.background = 'rgba(255, 255, 255, 0.98)';
-            header.style.boxShadow = '0 5px 20px rgba(0,0,0,0.1)';
+            header.classList.add('scrolled');
         } else {
-            header.style.background = 'rgba(255, 255, 255, 0.9)';
-            header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.05)';
+            header.classList.remove('scrolled');
         }
     });
 
@@ -248,4 +246,105 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.transition = 'all 0.6s ease';
         observer.observe(el);
     });
+
+    // --- NEW FEATURES LOGIC ---
+
+    // 1. Dark Mode Toggle
+    const darkModeBtn = document.getElementById('dark-mode-toggle');
+    const body = document.body;
+    
+    // Check saved preference
+    const savedDarkMode = localStorage.getItem('darkMode');
+    if (savedDarkMode === 'enabled') {
+        body.classList.add('dark-mode');
+        if (darkModeBtn) darkModeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+
+    if (darkModeBtn) {
+        darkModeBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('darkMode', 'enabled');
+                darkModeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+                darkModeBtn.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        });
+    }
+
+    // 2. FAQ Accordion
+    const faqQuestions = document.querySelectorAll('.faq-question');
+    faqQuestions.forEach(question => {
+        question.addEventListener('click', () => {
+            // Close other open FAQs
+            const activeQuestion = document.querySelector('.faq-question.active');
+            if (activeQuestion && activeQuestion !== question) {
+                activeQuestion.classList.remove('active');
+                activeQuestion.nextElementSibling.style.maxHeight = null;
+            }
+
+            // Toggle current FAQ
+            question.classList.toggle('active');
+            const answer = question.nextElementSibling;
+            if (question.classList.contains('active')) {
+                answer.style.maxHeight = answer.scrollHeight + "px";
+            } else {
+                answer.style.maxHeight = null;
+            }
+        });
+    });
+
+    // 3. Pricing Estimator Calculator
+    const calcCheckboxes = document.querySelectorAll('.calc-checkbox input');
+    const totalDisplay = document.getElementById('calc-total');
+    const waBtn = document.getElementById('calc-wa-btn');
+
+    function calculateTotal() {
+        let total = 0;
+        let selectedFeatures = [];
+
+        calcCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                total += parseInt(checkbox.value);
+                const label = checkbox.nextElementSibling.nextElementSibling.textContent;
+                selectedFeatures.push(label.replace(' (Base)', ''));
+            }
+        });
+
+        // Format to IDR
+        const formattedTotal = new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            maximumFractionDigits: 0
+        }).format(total);
+
+        if (totalDisplay) {
+            totalDisplay.textContent = formattedTotal;
+        }
+
+        // Update WhatsApp Button Link
+        if (waBtn) {
+            let message = `Halo, saya tertarik membuat website dengan estimasi total *${formattedTotal}*.\n\nFitur yang saya butuhkan:\n`;
+            if (selectedFeatures.length === 0) {
+                message += "- (Belum ada fitur yang dipilih)";
+            } else {
+                selectedFeatures.forEach(feature => {
+                    message += `- ${feature}\n`;
+                });
+            }
+            message += `\nMohon informasi lebih lanjut. Terima kasih!`;
+            
+            const encodedMessage = encodeURIComponent(message);
+            waBtn.href = `https://wa.me/6285241476413?text=${encodedMessage}`;
+        }
+    }
+
+    if (calcCheckboxes.length > 0) {
+        calcCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', calculateTotal);
+        });
+        // Initial calculation
+        calculateTotal();
+    }
 });
